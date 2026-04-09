@@ -70,10 +70,26 @@ export function getWatchContext() {
  * @param {string} watchContext - current watch context string
  */
 export async function chatWithClaude(messages, watchContext = '') {
+  // Client-side input guards
+  if (!Array.isArray(messages) || messages.length === 0) {
+    throw new Error('Messages array is required');
+  }
+  if (messages.length > 50) {
+    throw new Error('Too many messages');
+  }
+
+  // Sanitize: trim content, enforce max length per message
+  const sanitized = messages.map((m) => ({
+    role: m.role === 'user' ? 'user' : 'assistant',
+    content: String(m.content || '').slice(0, 2000),
+  }));
+
+  const context = String(watchContext || '').slice(0, 5000);
+
   const res = await fetch(`${RAILWAY_URL}/chat`, {
     method: 'POST',
     headers: jsonHeaders(),
-    body: JSON.stringify({ messages, watchContext }),
+    body: JSON.stringify({ messages: sanitized, watchContext: context }),
   });
 
   if (!res.ok) {
@@ -105,9 +121,14 @@ export function parseWatchData(text) {
  * Falls back to mock data until Railway /prices endpoint exists.
  */
 export async function fetchPrices(origin, destination, date) {
+  // Sanitize query params — station codes are 3 uppercase letters, date is YYYY-MM-DD
+  const safeOrigin = encodeURIComponent(String(origin || '').toUpperCase().slice(0, 3));
+  const safeDest = encodeURIComponent(String(destination || '').toUpperCase().slice(0, 3));
+  const safeDate = encodeURIComponent(String(date || '').slice(0, 10));
+
   try {
     const resp = await fetch(
-      `${RAILWAY_URL}/prices?origin=${origin}&destination=${destination}&date=${date}`,
+      `${RAILWAY_URL}/prices?origin=${safeOrigin}&destination=${safeDest}&date=${safeDate}`,
       { headers: { 'Accept': 'application/json' } }
     );
     if (resp.ok) {
@@ -128,13 +149,20 @@ export async function fetchPrices(origin, destination, date) {
 // ─── Watch registration ─────────────────────────────────────────────────────
 
 export async function registerWatch(watchData, subscription = null) {
+  // Sanitize inputs before sending
+  const origin = String(watchData.origin || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3);
+  const destination = String(watchData.destination || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3);
+  const date = String(watchData.date || '').slice(0, 10);
+
+  if (origin.length !== 3 || destination.length !== 3) {
+    throw new Error('Invalid station code');
+  }
+
+  const trains = Array.isArray(watchData.trains) ? watchData.trains.slice(0, 20) : [];
+
   const body = {
-    route: {
-      origin: watchData.origin,
-      destination: watchData.destination,
-      date: watchData.date || '',
-    },
-    trains: watchData.trains || [],
+    route: { origin, destination, date },
+    trains,
   };
   if (subscription) {
     body.subscription = subscription;
