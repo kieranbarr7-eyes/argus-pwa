@@ -1,4 +1,5 @@
 const RAILWAY_URL = import.meta.env.VITE_RAILWAY_URL || 'https://argus-agent-production.up.railway.app';
+const ARGUS_SECRET = import.meta.env.VITE_ARGUS_SECRET || '';
 
 // ─── Mock data (used until /prices endpoint is built on Railway) ─────────
 
@@ -11,12 +12,18 @@ const MOCK_TRAINS = [
 
 // ─── Common headers ─────────────────────────────────────────────────────────
 
-const JSON_HEADERS = {
-  'Content-Type': 'application/json',
-  'Accept': 'application/json',
-};
+function jsonHeaders() {
+  const headers = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  };
+  if (ARGUS_SECRET) {
+    headers['X-Argus-Secret'] = ARGUS_SECRET;
+  }
+  return headers;
+}
 
-// ─── Claude chat ────────────────────────────────────────────────────────────
+// ─── Claude chat (proxied through Railway — API key stays server-side) ────
 
 /**
  * Build a system prompt that includes the user's current watched trains.
@@ -58,39 +65,24 @@ export function getWatchContext() {
 }
 
 /**
- * Send a message to Claude and get a response.
+ * Send a message to Claude via Railway backend (API key never leaves server).
  * @param {Array<{role: string, content: string}>} messages
  * @param {string} watchContext - current watch context string
  */
 export async function chatWithClaude(messages, watchContext = '') {
-  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY || '';
-  console.log('[Argus] API key present:', !!apiKey, 'length:', apiKey?.length);
-
-  const systemPrompt = buildSystemPrompt(watchContext);
-
-  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+  const res = await fetch(`${RAILWAY_URL}/chat`, {
     method: 'POST',
-    headers: {
-      ...JSON_HEADERS,
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 300,
-      system: systemPrompt,
-      messages,
-    }),
+    headers: jsonHeaders(),
+    body: JSON.stringify({ messages, watchContext }),
   });
 
-  if (!resp.ok) {
-    const errText = await resp.text().catch(() => '');
-    throw new Error(`Claude API error ${resp.status}: ${errText}`);
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    throw new Error(`Chat error ${res.status}: ${errText}`);
   }
 
-  const data = await resp.json();
-  return data.content?.[0]?.text || '';
+  const data = await res.json();
+  return data.content || '';
 }
 
 /**
@@ -150,7 +142,7 @@ export async function registerWatch(watchData, subscription = null) {
 
   const resp = await fetch(`${RAILWAY_URL}/register`, {
     method: 'POST',
-    headers: JSON_HEADERS,
+    headers: jsonHeaders(),
     body: JSON.stringify(body),
   });
 
@@ -177,7 +169,7 @@ export async function sendSubscription(subscription, watchId = null) {
 
   const resp = await fetch(`${RAILWAY_URL}/subscribe`, {
     method: 'POST',
-    headers: JSON_HEADERS,
+    headers: jsonHeaders(),
     body: JSON.stringify(body),
   });
 
