@@ -46,9 +46,13 @@ export default function Landing({ onStart }) {
     <div className="min-h-screen flex flex-col">
       {/* Hero — above the fold */}
       <section className="min-h-[88vh] flex flex-col items-center justify-center px-6 text-center pb-4">
-        <div className="animate-fade-in-up max-w-md">
-          <div className="flex justify-center mb-6">
-            <EyeLogo size={64} />
+        <div className="animate-fade-in-up max-w-md w-full">
+          {/* Logo + wordmark */}
+          <div className="flex items-center justify-center gap-3 mb-8">
+            <EyeLogo size={40} />
+            <span className="text-white font-extrabold text-xl tracking-[0.15em]">
+              ARGUS<span className="text-electric">FARE</span>
+            </span>
           </div>
 
           <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white leading-[1.05]">
@@ -57,24 +61,20 @@ export default function Landing({ onStart }) {
           </h1>
 
           <p className="text-gray-400 text-base mt-5">
-            Get notified the moment fares drop on your route.
+            Get notified the moment fares drop on your route.<br />
+            <span className="text-gray-500 text-sm">Free to join.</span>
           </p>
 
-          <button
-            onClick={onStart}
-            className="mt-8 w-full max-w-xs py-4 rounded-xl bg-electric hover:bg-electric-dark
-                       text-white font-semibold text-base transition-all duration-200
-                       active:scale-[0.98] shadow-lg shadow-electric/25"
-          >
-            Search Trains →
-          </button>
-
-          {/* Waitlist signup */}
-          <div style={{ textAlign: 'center', marginTop: '16px' }}>
-            <p style={{ color: '#94A3B8', fontSize: '13px', marginBottom: '8px' }}>
-              Not ready to search? Get notified when we launch alerts.
-            </p>
-            <div style={{ display: 'flex', gap: '8px', maxWidth: '320px', margin: '0 auto' }}>
+          {/* Waitlist signup — PRIMARY CTA */}
+          <div style={{ marginTop: '28px' }}>
+            <div
+              style={{
+                display: 'flex',
+                gap: '10px',
+                maxWidth: '420px',
+                margin: '0 auto',
+              }}
+            >
               <input
                 type="email"
                 value={email}
@@ -92,12 +92,12 @@ export default function Landing({ onStart }) {
                 disabled={waitlistState === 'loading' || waitlistState === 'success'}
                 style={{
                   flex: 1,
-                  padding: '10px 14px',
-                  borderRadius: '8px',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  background: 'rgba(255,255,255,0.05)',
+                  padding: '16px 18px',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  background: 'rgba(255,255,255,0.06)',
                   color: 'white',
-                  fontSize: '14px',
+                  fontSize: '16px',
                   outline: 'none',
                 }}
               />
@@ -105,25 +105,28 @@ export default function Landing({ onStart }) {
                 onClick={handleWaitlist}
                 disabled={waitlistState === 'loading' || waitlistState === 'success'}
                 style={{
-                  padding: '10px 16px',
-                  borderRadius: '8px',
-                  background: 'rgba(59,130,246,0.2)',
-                  border: '1px solid rgba(59,130,246,0.4)',
-                  color: '#3B82F6',
-                  fontSize: '14px',
+                  padding: '16px 22px',
+                  borderRadius: '12px',
+                  background: '#3B82F6',
+                  border: '1px solid #3B82F6',
+                  color: 'white',
+                  fontSize: '16px',
+                  fontWeight: 600,
                   cursor: waitlistState === 'loading' ? 'not-allowed' : 'pointer',
                   whiteSpace: 'nowrap',
-                  opacity: waitlistState === 'loading' ? 0.6 : 1,
+                  boxShadow: '0 10px 25px -10px rgba(59,130,246,0.6)',
+                  opacity: waitlistState === 'loading' ? 0.7 : 1,
+                  transition: 'transform 0.15s',
                 }}
               >
-                {waitlistState === 'loading' ? '…' : 'Notify me'}
+                {waitlistState === 'loading' ? 'Joining…' : 'Notify me'}
               </button>
             </div>
             {waitlistMessage && (
               <p
                 style={{
-                  marginTop: '10px',
-                  fontSize: '12px',
+                  marginTop: '12px',
+                  fontSize: '13px',
                   color: waitlistState === 'success' ? '#10B981' : '#F87171',
                 }}
               >
@@ -131,6 +134,14 @@ export default function Landing({ onStart }) {
               </p>
             )}
           </div>
+
+          {/* Secondary search link */}
+          <button
+            onClick={onStart}
+            className="mt-5 text-gray-500 hover:text-electric transition-colors text-sm"
+          >
+            or search trains now →
+          </button>
 
           {/* Scroll indicator */}
           <div
