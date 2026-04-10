@@ -148,6 +148,23 @@ export async function fetchPrices(origin, destination, date) {
   return MOCK_TRAINS;
 }
 
+// ─── Waitlist ───────────────────────────────────────────────────────────────
+
+export async function joinWaitlist(email, source = 'landing') {
+  const clean = String(email || '').trim().toLowerCase().slice(0, 254);
+  const resp = await fetch(`${RAILWAY_URL}/waitlist`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({ email: clean, source }),
+  });
+
+  if (!resp.ok) {
+    const errBody = await resp.json().catch(() => ({}));
+    throw new Error(errBody.error || `Waitlist signup failed (${resp.status})`);
+  }
+  return resp.json();
+}
+
 // ─── Watch registration ─────────────────────────────────────────────────────
 
 export async function registerWatch(watchData, subscription = null) {

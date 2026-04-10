@@ -1,4 +1,8 @@
+import { useState } from 'react';
 import EyeLogo from '../components/EyeLogo';
+import { joinWaitlist } from '../utils/api';
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const recentDrops = [
   { train: '651', route: 'NYP → PHL', price: 15, when: '2 hours ago' },
@@ -14,6 +18,30 @@ const steps = [
 ];
 
 export default function Landing({ onStart }) {
+  const [email, setEmail] = useState('');
+  const [waitlistState, setWaitlistState] = useState('idle'); // idle | loading | success | error
+  const [waitlistMessage, setWaitlistMessage] = useState('');
+
+  async function handleWaitlist() {
+    const trimmed = email.trim();
+    if (!EMAIL_RE.test(trimmed)) {
+      setWaitlistState('error');
+      setWaitlistMessage('Please enter a valid email');
+      return;
+    }
+    setWaitlistState('loading');
+    setWaitlistMessage('');
+    try {
+      await joinWaitlist(trimmed, 'landing');
+      setWaitlistState('success');
+      setWaitlistMessage("You're on the list! We'll notify you when alerts launch.");
+      setEmail('');
+    } catch (err) {
+      setWaitlistState('error');
+      setWaitlistMessage(err.message || 'Something went wrong. Please try again.');
+    }
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Hero — above the fold */}
@@ -40,6 +68,69 @@ export default function Landing({ onStart }) {
           >
             Search Trains →
           </button>
+
+          {/* Waitlist signup */}
+          <div style={{ textAlign: 'center', marginTop: '16px' }}>
+            <p style={{ color: '#94A3B8', fontSize: '13px', marginBottom: '8px' }}>
+              Not ready to search? Get notified when we launch alerts.
+            </p>
+            <div style={{ display: 'flex', gap: '8px', maxWidth: '320px', margin: '0 auto' }}>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (waitlistState === 'error') {
+                    setWaitlistState('idle');
+                    setWaitlistMessage('');
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleWaitlist();
+                }}
+                placeholder="your@email.com"
+                disabled={waitlistState === 'loading' || waitlistState === 'success'}
+                style={{
+                  flex: 1,
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: 'rgba(255,255,255,0.05)',
+                  color: 'white',
+                  fontSize: '14px',
+                  outline: 'none',
+                }}
+              />
+              <button
+                onClick={handleWaitlist}
+                disabled={waitlistState === 'loading' || waitlistState === 'success'}
+                style={{
+                  padding: '10px 16px',
+                  borderRadius: '8px',
+                  background: 'rgba(59,130,246,0.2)',
+                  border: '1px solid rgba(59,130,246,0.4)',
+                  color: '#3B82F6',
+                  fontSize: '14px',
+                  cursor: waitlistState === 'loading' ? 'not-allowed' : 'pointer',
+                  whiteSpace: 'nowrap',
+                  opacity: waitlistState === 'loading' ? 0.6 : 1,
+                }}
+              >
+                {waitlistState === 'loading' ? '…' : 'Notify me'}
+              </button>
+            </div>
+            {waitlistMessage && (
+              <p
+                style={{
+                  marginTop: '10px',
+                  fontSize: '12px',
+                  color: waitlistState === 'success' ? '#10B981' : '#F87171',
+                }}
+              >
+                {waitlistMessage}
+              </p>
+            )}
+          </div>
 
           {/* Scroll indicator */}
           <div
