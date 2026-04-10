@@ -33,6 +33,12 @@
   animation: fadeInUp 0.4s ease-out forwards;
 }
 
+/* Scroll-down indicator bounce */
+@keyframes scrollBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
 /* Pulse glow for status indicator */
 @keyframes pulseGlow {
   0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }

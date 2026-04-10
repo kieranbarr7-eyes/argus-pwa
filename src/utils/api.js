@@ -70,6 +70,8 @@ export function getWatchContext() {
  * @param {string} watchContext - current watch context string
  */
 export async function chatWithClaude(messages, watchContext = '') {
+  console.log('[Argus] Calling Railway chat endpoint:', RAILWAY_URL + '/chat');
+
   // Client-side input guards
   if (!Array.isArray(messages) || messages.length === 0) {
     throw new Error('Messages array is required');

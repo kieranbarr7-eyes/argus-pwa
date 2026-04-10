@@ -27,16 +27,23 @@ export default function Results({ searchParams, trains, watches, onWatch, onBack
       </div>
 
       {/* Stats bar */}
-      <div className="flex items-center justify-between mb-4 px-1">
+      <div className="flex items-center justify-between mb-3 px-1">
         <span className="text-gray-500 text-xs">
-          {trains.length} train{trains.length !== 1 ? 's' : ''} found · checked just now
+          {trains.length} train{trains.length !== 1 ? 's' : ''} · checked just now
         </span>
         {hasWatches && (
           <span className="flex items-center gap-1.5 text-green text-xs font-medium">
             <span className="w-1.5 h-1.5 rounded-full bg-green pulse-glow" />
-            Argus is watching
+            watching
           </span>
         )}
+      </div>
+
+      {/* Price legend */}
+      <div className="flex items-center justify-between text-[11px] text-gray-500 mb-3 px-1">
+        <span><span style={{ color: '#10B981' }}>●</span> Great deal</span>
+        <span><span style={{ color: '#F59E0B' }}>●</span> Average</span>
+        <span><span className="text-white">●</span> Above average</span>
       </div>
 
       {/* Train cards */}
