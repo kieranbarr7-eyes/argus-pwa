@@ -107,6 +107,9 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-navy">
+      <div className="bg-amber-500 text-black text-center text-sm font-semibold py-2 px-4">
+        Demo Mode — All data shown is simulated. Live tracking coming soon!
+      </div>
       {screen === SCREENS.LANDING && (
         <Landing onStart={handleSearchTrains} />
       )}
